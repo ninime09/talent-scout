@@ -1,20 +1,13 @@
-"""GitHub Talent Scout — Streamlit platform UI.
-
-Day 1 PM: real LangGraph agent wired in via `graph.stream(stream_mode="updates")`.
-The mock data path remains as a fallback when API keys are not configured,
-so the platform layout is always demonstrable.
-"""
+"""GitHub Talent Scout — Streamlit platform UI."""
 from __future__ import annotations
 
 import json
 import os
-import time
 import uuid
 from pathlib import Path
 
 import pandas as pd
 import streamlit as st
-import streamlit_mermaid as stmd
 from dotenv import load_dotenv
 
 load_dotenv()

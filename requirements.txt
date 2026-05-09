@@ -1,6 +1,6 @@
 streamlit>=1.42
 streamlit-extras>=0.4
-streamlit-mermaid>=0.3
+watchdog>=4.0
 langgraph>=0.2
 langchain-anthropic>=0.2
 langchain-core>=0.3
