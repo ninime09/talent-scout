@@ -20,6 +20,8 @@ import requests
 # longer-window analytics shouldn't rely on it.
 _CACHE_PATH = Path(__file__).parent / "data" / "activity_cache.json"
 _CACHE_TTL_SECONDS = 3600
+# Bump when the activity dict schema changes so older entries are ignored.
+_CACHE_SCHEMA_VERSION = 2  # v2: pr_details (per-PR file lists) replaces framework_design_prs
 
 
 def _cache_load() -> dict:
@@ -183,10 +185,17 @@ def get_user_activity(
     cache_key = f"{username}|{repo}|{window_days}"
     cache = _cache_load()
     cached = cache.get(cache_key)
-    if cached and "_cached_at" in cached:
-        if time.time() - cached["_cached_at"] < _CACHE_TTL_SECONDS:
-            payload = {k: v for k, v in cached.items() if k != "_cached_at"}
-            return payload
+    if (
+        cached
+        and "_cached_at" in cached
+        and cached.get("_schema_version") == _CACHE_SCHEMA_VERSION
+        and time.time() - cached["_cached_at"] < _CACHE_TTL_SECONDS
+    ):
+        payload = {
+            k: v for k, v in cached.items()
+            if k not in ("_cached_at", "_schema_version")
+        }
+        return payload
 
     since = (datetime.now(timezone.utc) - timedelta(days=window_days)).isoformat()
     stats = ActivityStats(username=username, repo=repo, window_days=window_days)
@@ -258,7 +267,11 @@ def get_user_activity(
     )
 
     payload = stats.to_dict()
-    cache[cache_key] = {**payload, "_cached_at": time.time()}
+    cache[cache_key] = {
+        **payload,
+        "_cached_at": time.time(),
+        "_schema_version": _CACHE_SCHEMA_VERSION,
+    }
     _cache_save(cache)
     return payload
 
