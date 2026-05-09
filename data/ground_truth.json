@@ -1,0 +1,96 @@
+{
+  "_meta": {
+    "repo": "tokio-rs/axum",
+    "labelers": ["Jennifer"],
+    "labeling_method": "Each labeler independently scored 1-5 based on public PR/review history. Final label = median of 3 labelers. Disagreements > 1 point flagged for re-review.",
+    "labeling_window": "last 12 months",
+    "scale": {
+      "5": "Core maintainer / framework architect (e.g., authors merged design RFCs, owns module boundaries)",
+      "4": "Senior contributor (frequent merged PRs, active reviewer, design participation)",
+      "3": "Mid-level contributor (regular merged PRs, occasional reviews)",
+      "2": "Occasional contributor (1-3 merged PRs, narrow scope)",
+      "1": "Drive-by contributor (single PR / typo fixes)"
+    },
+    "rationale_for_15": "Ground-truth size of 15 is small enough to label by hand in one evening, large enough for Spearman correlation to be meaningful (n=15 → significance threshold ρ ≈ 0.52 at p=0.05).",
+    "completed": true,
+    "completion_target": "Day 1 EVE → Day 2 AM"
+  },
+  "labels": [
+    {
+      "username": "davidpdrsn",
+      "score": 5,
+      "rationale": "Original author and core maintainer; owns routing/extractor architecture (src/routing, src/extract); 400+ commits and PRs; merged design RFCs; has direct crates.io ownership. Currently less active but foundational ownership is unambiguous."
+    },
+    {
+      "username": "jplatte",
+      "score": 5,
+      "rationale": "Active core maintainer with crates.io co-ownership; hundreds of reviews and merges; drove async-trait removal (AFIT migration, PR #2308); regularly commits to main; only 2 people have direct crates.io publish rights."
+    },
+    {
+      "username": "Zarathustra2",
+      "score": 3,
+      "rationale": "Mid-level contributor; PR #3165 adds read_buffer_size configuration for WebSockets — a non-trivial feature PR touching axum's WebSocket layer; consistent with 5-20 merged PRs profile."
+    },
+    {
+      "username": "programatik29",
+      "score": 2,
+      "rationale": "Early ecosystem contributor (axum-server, axum-tutorial); but only 2 contributions in the last 12 months with no PRs to tokio-rs/axum main repo visible. Scored 2 for historical narrow-scope work, not current involvement."
+    },
+    {
+      "username": "aentinger",
+      "score": 2,
+      "rationale": "Occasional contributor; 1-3 merged PRs of narrow scope (docs / small fixes); no sustained review activity visible."
+    },
+    {
+      "username": "yanns",
+      "score": 4,
+      "rationale": "Senior contributor; frequently appears in commit log and PR discussions; active reviewer named in maintainer discussions (#2942); consistent contributions across middleware and routing areas over multiple release cycles."
+    },
+    {
+      "username": "SabrinaJewson",
+      "score": 4,
+      "rationale": "Senior contributor; has open feature branch (serve-return-ii) showing deep involvement in serve/hyper integration; participates in design discussions; multiple non-trivial PRs touching core abstractions."
+    },
+    {
+      "username": "mladedav",
+      "score": 4,
+      "rationale": "Senior contributor and informal reviewer; named alongside maintainers in design discussions (#2942); multiple PRs in axum-macros (e.g., #3163); active in CI and code review; consistent cadence over last 12 months."
+    },
+    {
+      "username": "Turbo87",
+      "score": 3,
+      "rationale": "Mid-level contributor; PR #3157 adds OptionalFromRequestParts to Extension; several other merged PRs; active in CI; scope is feature additions rather than architectural ownership."
+    },
+    {
+      "username": "tottoto",
+      "score": 3,
+      "rationale": "Mid-level contributor; named in maintainer discussions as a regular participant (#2942); multiple merged PRs across axum and axum-extra; occasional reviews."
+    },
+    {
+      "username": "TheAwiteb",
+      "score": 2,
+      "rationale": "Occasional contributor; visible in recent commits (e09cc59) but limited to 1-3 merged PRs of narrow scope; no sustained review activity."
+    },
+    {
+      "username": "lz1998",
+      "score": 2,
+      "rationale": "Occasional contributor; authored large PR #2308 (async-trait removal / AFIT migration) which was eventually merged by jplatte after long review cycle; single notable contribution, no ongoing review presence."
+    },
+    {
+      "username": "JustusFluegel",
+      "score": 2,
+      "rationale": "Occasional contributor; PR #2723 (TypedPath generics in axum-extra) is a non-trivial feature but scope is narrow; limited other activity visible."
+    },
+    {
+      "username": "dobecad",
+      "score": 1,
+      "rationale": "Drive-by contributor; single merged PR #2058 (Query::try_from_uri convenience method); no review activity or follow-up contributions visible."
+    },
+    {
+      "username": "alvra",
+      "score": 1,
+      "rationale": "Drive-by contributor; single merged PR #2035 (IntoResponse for boxed slices); no further contributions or review activity after merge."
+    }
+  ]
+}
+

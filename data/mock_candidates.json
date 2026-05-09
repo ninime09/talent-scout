@@ -1,0 +1,62 @@
+[
+  {
+    "rank": 1,
+    "username": "davidpdrsn",
+    "impact_score": 92.4,
+    "merged_prs": 218,
+    "reviews": 412,
+    "recency_days": 3,
+    "review_acceptance": 0.94,
+    "predicates_passed": "5/5",
+    "reasoning": "Core maintainer of Axum. Authored 218 merged PRs including framework-level redesigns (extractor trait, error handling). 412 reviews show deep cross-area expertise. Last commit 3 days ago. Evidence: PR #2401 (extractor refactor), PR #1923 (typed routing).",
+    "evidence_links": ["https://github.com/tokio-rs/axum/pull/2401", "https://github.com/tokio-rs/axum/pull/1923"]
+  },
+  {
+    "rank": 2,
+    "username": "jplatte",
+    "impact_score": 78.1,
+    "merged_prs": 64,
+    "reviews": 187,
+    "recency_days": 8,
+    "review_acceptance": 0.89,
+    "predicates_passed": "5/5",
+    "reasoning": "Active reviewer with strong async expertise. 64 merged PRs focused on middleware ergonomics. Heavy review participation suggests senior-level judgement.",
+    "evidence_links": ["https://github.com/tokio-rs/axum/pull/2103"]
+  },
+  {
+    "rank": 3,
+    "username": "leotaku",
+    "impact_score": 71.3,
+    "merged_prs": 41,
+    "reviews": 95,
+    "recency_days": 12,
+    "review_acceptance": 0.85,
+    "predicates_passed": "4/5",
+    "reasoning": "Strong contributor on routing internals. Predicate 'has_framework_design_pr' partially met — design contributions exist but limited cross-module scope.",
+    "evidence_links": ["https://github.com/tokio-rs/axum/pull/2050"]
+  },
+  {
+    "rank": 4,
+    "username": "programatik29",
+    "impact_score": 65.8,
+    "merged_prs": 33,
+    "reviews": 58,
+    "recency_days": 21,
+    "review_acceptance": 0.82,
+    "predicates_passed": "4/5",
+    "reasoning": "Consistent contributor on websocket and streaming features. Recency outside 14-day window — flagged as 'recently active' rather than 'currently active'.",
+    "evidence_links": ["https://github.com/tokio-rs/axum/pull/1982"]
+  },
+  {
+    "rank": 5,
+    "username": "aentinger",
+    "impact_score": 58.2,
+    "merged_prs": 22,
+    "reviews": 31,
+    "recency_days": 35,
+    "review_acceptance": 0.78,
+    "predicates_passed": "3/5",
+    "reasoning": "Mid-level contributor. Useful for backfill or junior-mentor roles but does not meet senior bar (insufficient review participation, evidence gap on framework design).",
+    "evidence_links": ["https://github.com/tokio-rs/axum/pull/1855"]
+  }
+]

@@ -1,0 +1,7 @@
+feature_removed,spearman,delta_vs_full,kendall_tau,note
+none_full_model,0.722,0.0,0.57,baseline
+merged_pr_count,0.756,0.034,0.615,feature improves Spearman by 0.034
+review_acceptance_rate,0.702,-0.021,0.525,feature drops Spearman by 0.021
+review_participation,0.692,-0.03,0.525,feature drops Spearman by 0.030
+commit_recency,0.838,0.116,0.709,feature improves Spearman by 0.116
+issue_discussion_quality,0.722,0.0,0.57,near-zero impact

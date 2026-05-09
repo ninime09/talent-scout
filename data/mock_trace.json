@@ -1,0 +1,65 @@
+[
+  {
+    "step": 1,
+    "node": "clarify_node",
+    "observation": "Query 'Find good Rust contributors in tokio-rs/axum' lacks seniority + role + must-have skills",
+    "decision": "Trigger interrupt: ask user to clarify (3 missing dimensions detected)",
+    "action": "PAUSE — return Command(interrupt={'fields': ['seniority', 'role', 'skills']})"
+  },
+  {
+    "step": 2,
+    "node": "clarify_node (resumed)",
+    "observation": "User provided: seniority=senior, role=framework-design, skills=[async, rust]",
+    "decision": "All required dimensions present → proceed to criteria_parser",
+    "action": "FORWARD to criteria_parser_node"
+  },
+  {
+    "step": 3,
+    "node": "criteria_parser_node",
+    "observation": "Free-text criteria parsed via Haiku 4.5",
+    "decision": "Generated 5 structured predicates with evidence_required fields",
+    "action": "Predicates: [seniority>=senior, min_merged_prs>=20, has_async_expertise, has_framework_design_pr, review_acceptance>=0.8]"
+  },
+  {
+    "step": 4,
+    "node": "search_contributors_node",
+    "observation": "GitHub API returned top 10 contributors of tokio-rs/axum",
+    "decision": "Filter: keep contributors with >=10 merged PRs (drops 3 low-activity)",
+    "action": "Pass 7 candidates to activity expansion"
+  },
+  {
+    "step": 5,
+    "node": "get_user_activity_node",
+    "observation": "Pulled events + PR metadata for 7 users (last 90 days)",
+    "decision": "All have sufficient activity history",
+    "action": "Forward to score_node"
+  },
+  {
+    "step": 6,
+    "node": "score_node (iter 1)",
+    "observation": "Computed weighted scores. Candidate #3 has high score 81 but evidence_required ['has_framework_design_pr'] cannot be verified from current data",
+    "decision": "evidence_check: predicate failed for top candidate → loop back to fetch more PRs",
+    "action": "iteration_count=1, return to get_user_activity_node with extended_window=180"
+  },
+  {
+    "step": 7,
+    "node": "get_user_activity_node (iter 2)",
+    "observation": "Extended window pulled additional 12 PRs for candidate #3",
+    "decision": "Found 2 framework-design PRs (PR #2050, #1923)",
+    "action": "Re-score with refined evidence"
+  },
+  {
+    "step": 8,
+    "node": "score_node (iter 2)",
+    "observation": "All 5 final candidates have all required predicates verified with evidence links",
+    "decision": "evidence_check passed → forward to report",
+    "action": "FORWARD to report_node"
+  },
+  {
+    "step": 9,
+    "node": "report_node",
+    "observation": "5 final candidates with full evidence trail",
+    "decision": "Generate explanations citing specific PRs",
+    "action": "Output structured TalentReport with reasoning chain"
+  }
+]

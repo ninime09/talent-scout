@@ -1,0 +1,17 @@
+Convert the hiring criteria to structured predicates. Return JSON only.
+
+Schema:
+{
+  "seniority": "senior" | "mid" | "junior",
+  "min_merged_prs": int,
+  "must_have_skills": [str],
+  "evidence_required": [str],
+  "review_acceptance_min": float (0-1)
+}
+
+Allowed values for evidence_required: ["framework_design_pr"]
+
+Choose min_merged_prs by seniority:
+- senior: 20
+- mid: 5
+- junior: 1

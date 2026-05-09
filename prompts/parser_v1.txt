@@ -1,0 +1,8 @@
+Convert the hiring criteria to structured predicates. Return JSON:
+{
+  "seniority": ...,
+  "min_merged_prs": ...,
+  "must_have_skills": [...],
+  "evidence_required": [...],
+  "review_acceptance_min": ...
+}

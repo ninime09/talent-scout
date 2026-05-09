@@ -1,0 +1,13 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+.streamlit/secrets.toml
+references/
+.DS_Store
+.ipynb_checkpoints/
+*.egg-info/
+data/activity_cache.json
+data/eval_raw_outputs.json
+data/variation_debug_*.txt
+/tmp/

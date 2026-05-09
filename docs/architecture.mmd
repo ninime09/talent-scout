@@ -1,0 +1,60 @@
+flowchart TD
+    START(["USER INPUT<br/>repo + criteria + top_n"])
+
+    subgraph P1 ["Phase 1 — Understand intent"]
+        direction TB
+        CLARIFY["<b>clarify_node</b><br/><i>Sonnet 4.5</i><br/>detect missing dims"]
+        ASKUSER{{"INTERRUPT<br/>ask user for<br/>seniority · role · skills"}}
+        PARSER["<b>criteria_parser_node</b><br/><i>Haiku 4.5</i><br/>free text → 5 predicates"]
+    end
+
+    subgraph P2 ["Phase 2 — Gather evidence"]
+        direction TB
+        SEARCH["<b>search_contributors_node</b><br/><i>GitHub API</i><br/>top-N contributors"]
+        ACTIVITY["<b>get_user_activity_node</b><br/><i>GitHub API + 1h cache</i><br/>365d PRs / reviews / commits"]
+    end
+
+    subgraph P3 ["Phase 3 — Score & verify"]
+        direction TB
+        SCORE["<b>score_node</b><br/><i>pandas weighted</i><br/>5 features → 0–100 score<br/>+ rule-based predicate check"]
+        EVCHECK{"evidence_check<br/>predicates verified?"}
+        EXPAND["<b>expand_window_node</b><br/>window ×2 (max 2 loops)"]
+    end
+
+    subgraph P4 ["Phase 4 — Explain"]
+        direction TB
+        REPORT["<b>report_node</b><br/><i>Sonnet 4.5</i><br/>evidence-grounded narrative<br/>cites real PR URLs"]
+    end
+
+    DONE(["TALENT REPORT<br/>ranking + reasoning + evidence"])
+
+    START --> CLARIFY
+    CLARIFY -->|criteria incomplete| ASKUSER
+    ASKUSER -.->|user resume| PARSER
+    CLARIFY -->|criteria complete| PARSER
+    PARSER --> SEARCH
+    SEARCH --> ACTIVITY
+    ACTIVITY --> SCORE
+    SCORE --> EVCHECK
+    EVCHECK -->|missing| EXPAND
+    EXPAND -.->|loop back| ACTIVITY
+    EVCHECK -->|sufficient| REPORT
+    REPORT --> DONE
+
+    classDef ai fill:#dbeafe,stroke:#1e40af,stroke-width:2px,color:#1e3a8a
+    classDef rule fill:#dcfce7,stroke:#166534,stroke-width:2px,color:#14532d
+    classDef hitl fill:#fef3c7,stroke:#92400e,stroke-width:2px,color:#78350f
+    classDef decision fill:#fce7f3,stroke:#9d174d,stroke-width:2px,color:#831843
+    classDef entry fill:#ede9fe,stroke:#6b21a8,stroke-width:2px,color:#581c87
+
+    class CLARIFY ai
+    class PARSER ai
+    class REPORT ai
+    class SEARCH rule
+    class ACTIVITY rule
+    class SCORE rule
+    class EXPAND rule
+    class ASKUSER hitl
+    class EVCHECK decision
+    class START entry
+    class DONE entry

@@ -1,0 +1,29 @@
+Convert the hiring criteria to structured predicates. Return JSON only — no
+prose, no markdown fences.
+
+Schema (every key REQUIRED):
+{
+  "seniority": "senior" | "mid" | "junior",
+  "min_merged_prs": int,
+  "must_have_skills": [str],            // lowercase, no duplicates
+  "evidence_required": [str],            // see allowed values
+  "review_acceptance_min": float        // 0.0-1.0
+}
+
+Allowed values for evidence_required: ["framework_design_pr"]
+(Do NOT invent new tags. Day 2 will extend this list.)
+
+Defaults by seniority — apply UNLESS the user gave an explicit value:
+- senior: min_merged_prs=20, review_acceptance_min=0.8,
+          evidence_required=["framework_design_pr"]
+- mid:    min_merged_prs=5,  review_acceptance_min=0.6,
+          evidence_required=[]
+- junior: min_merged_prs=1,  review_acceptance_min=0.4,
+          evidence_required=[]
+
+If the criteria mentions specific PR counts or thresholds, override the
+default with the explicit value. Always emit evidence_required for senior
+roles — the proposal review specifically asked for evidence-grounded
+predicates.
+
+Output JSON only.

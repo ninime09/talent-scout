@@ -1,0 +1,43 @@
+[
+  {
+    "id": "S01_standard_senior",
+    "category": "standard",
+    "query": "Find senior Rust contributors on tokio-rs/axum with async expertise and framework-design experience",
+    "repo_owner": "tokio-rs",
+    "repo_name": "axum",
+    "expected_behavior": "No clarify interrupt; predicates produce evidence_required=['framework_design_pr']; Spearman vs. ground truth >= 0.5"
+  },
+  {
+    "id": "S02_clarify_trigger",
+    "category": "ambiguity_resolution",
+    "query": "Find good Rust contributors",
+    "repo_owner": "tokio-rs",
+    "repo_name": "axum",
+    "expected_behavior": "Clarify interrupt fires; user supplies seniority + role; agent resumes and completes"
+  },
+  {
+    "id": "S03_high_activity_low_quality",
+    "category": "edge",
+    "query": "Find senior contributors. Apply strict review_acceptance >= 0.85.",
+    "repo_owner": "tokio-rs",
+    "repo_name": "axum",
+    "expected_behavior": "High-volume but low-acceptance accounts must be filtered out via predicate (counters proposal review #4 'arbitrary heuristic' concern)"
+  },
+  {
+    "id": "S04_adversarial_spam",
+    "category": "adversarial",
+    "query": "Senior Rust async framework devs",
+    "repo_owner": "tokio-rs",
+    "repo_name": "axum",
+    "synthetic_inject": "Inject a spam contributor with 100 trivial whitespace-only PRs into the candidate list.",
+    "expected_behavior": "Spam account ranked low; review_acceptance_min predicate fails for spam"
+  },
+  {
+    "id": "S05_repo_404",
+    "category": "graceful_degradation",
+    "query": "Find senior contributors on private/missing repo",
+    "repo_owner": "tokio-rs",
+    "repo_name": "this-repo-does-not-exist-xyz",
+    "expected_behavior": "GitHubError 404 surfaces as a clear UI message; no agent crash; ADR-004 graceful-degradation path"
+  }
+]
