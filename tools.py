@@ -111,6 +111,10 @@ def search_contributors(repo_owner: str, repo_name: str, top_n: int = 10) -> lis
 
 @dataclass
 class ActivityStats:
+    """Per-user activity in a repo. Stores raw PR file lists so evidence
+    rules can be applied dynamically at predicate-verification time
+    (rather than baking a single repo-specific heuristic into the fetcher).
+    """
     username: str
     repo: str
     window_days: int
@@ -119,9 +123,9 @@ class ActivityStats:
     review_count: int = 0
     issue_comments: int = 0
     last_commit_iso: str | None = None
-    framework_design_prs: list[dict] = field(default_factory=list)
     review_acceptance: float = 0.0
     raw_pr_urls: list[str] = field(default_factory=list)
+    pr_details: list[dict] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return {
@@ -133,31 +137,34 @@ class ActivityStats:
             "review_count": self.review_count,
             "issue_comments": self.issue_comments,
             "last_commit_iso": self.last_commit_iso,
-            "framework_design_prs": self.framework_design_prs,
             "review_acceptance": round(self.review_acceptance, 3),
             "raw_pr_urls": self.raw_pr_urls,
+            "pr_details": self.pr_details,
         }
 
 
-# Heuristic: PRs touching these path SUBSTRINGS count as "framework design".
-# axum is multi-crate (axum/, axum-core/, axum-extra/, axum-macros/), so we
-# match on substrings rather than prefixes to handle nested crates.
-FRAMEWORK_DESIGN_PATH_HINTS = (
-    "/src/extract",
-    "/src/routing",
-    "/src/handler",
-    "/src/middleware",
-    "/src/error",
-    "/src/response",
-    "/src/body",
-    "/src/lib.rs",
-    "axum-core/src/",
-)
+# Default evidence patterns used when criteria_parser_node falls back to
+# a string-style evidence tag. These are repo-agnostic architectural-layer
+# substrings that work for ~80% of mainstream code-organization conventions.
+DEFAULT_EVIDENCE_PATTERNS = {
+    "framework_design_pr": [
+        "/core/", "/lib/", "/internal/",
+        "/main/", "/server/",
+        "/api/", "/schemas/", "/types/",
+        "/router", "/middleware",
+        "/services/", "/handlers/",
+        "packages/",
+        "/src/extract", "/src/routing",
+    ],
+    "doc_pr": ["/docs/", "/doc/", "README", ".md"],
+    "test_pr": ["/tests/", "/__tests__/", "_test.go", ".test.ts", ".spec.ts", "test_"],
+}
 
 
-def _is_framework_design_pr(files: list[dict]) -> bool:
+def _files_match_patterns(files: list[dict], patterns: list[str]) -> bool:
+    """Return True if any file's path contains any of the patterns."""
     return any(
-        any(h in f.get("filename", "") for h in FRAMEWORK_DESIGN_PATH_HINTS)
+        any(p in f.get("filename", "") for p in patterns)
         for f in files
     )
 
@@ -192,7 +199,7 @@ def get_user_activity(
             "per_page": 50,
         },
     )
-    framework_count = 0
+    pr_files_fetched = 0
     accepted = 0
     for pr in pr_search.get("items", []):
         stats.raw_pr_urls.append(pr["html_url"])
@@ -202,15 +209,17 @@ def get_user_activity(
             accepted += 1
         elif pr.get("state") == "open":
             stats.open_prs += 1
-        # Sample first 25 PRs for files inspection (cap API cost)
-        if framework_count < 25:
+        # Sample first 25 PRs for files inspection (cap API cost).
+        # Files are stored raw so evidence rules can be applied later.
+        if pr_files_fetched < 25:
             try:
                 files = _gh_get(f"/repos/{repo}/pulls/{pr_number}/files")
-                if _is_framework_design_pr(files):
-                    stats.framework_design_prs.append(
-                        {"url": pr["html_url"], "title": pr["title"]}
-                    )
-                framework_count += 1
+                stats.pr_details.append({
+                    "url": pr["html_url"],
+                    "title": pr["title"],
+                    "files": [f.get("filename", "") for f in files],
+                })
+                pr_files_fetched += 1
             except GitHubError:
                 pass
 
@@ -338,6 +347,30 @@ def compute_impact_score(
 # ---------------------------------------------------------------------------
 
 
+def _resolve_evidence_rule(req) -> dict:
+    """Normalize an evidence_required entry into a rule dict.
+
+    Accepts two forms (string for backward compat, dict for new schema):
+      "framework_design_pr"  → uses DEFAULT_EVIDENCE_PATTERNS lookup
+      {"name": "...", "file_path_patterns": [...], "min_count": 1, ...}
+    """
+    if isinstance(req, str):
+        return {
+            "name": req,
+            "description": f"PRs matching '{req}' default patterns",
+            "file_path_patterns": DEFAULT_EVIDENCE_PATTERNS.get(req, []),
+            "min_count": 1,
+        }
+    if isinstance(req, dict):
+        return {
+            "name": req.get("name", "evidence"),
+            "description": req.get("description", ""),
+            "file_path_patterns": list(req.get("file_path_patterns", [])),
+            "min_count": int(req.get("min_count", 1)),
+        }
+    return {"name": "invalid", "file_path_patterns": [], "min_count": 1}
+
+
 def evaluate_predicates(
     activity: dict,
     score: dict,
@@ -350,7 +383,15 @@ def evaluate_predicates(
           "seniority": "senior" | "mid" | "junior" | "any",
           "min_merged_prs": int,
           "must_have_skills": [str],
-          "evidence_required": ["framework_design_pr", ...],
+          "evidence_required": [
+              # New schema (preferred):
+              {"name": "framework_design_pr",
+               "description": "PRs that touch architectural code",
+               "file_path_patterns": ["/core/", "src/extract", ...],
+               "min_count": 1},
+              # Legacy schema (still supported):
+              "framework_design_pr",
+          ],
           "review_acceptance_min": float (0-1),
         }
 
@@ -360,7 +401,7 @@ def evaluate_predicates(
           "passed": [{"predicate": str, "evidence": [...]}],
           "failed": [{"predicate": str, "reason": str}],
           "all_passed": bool,
-          "missing_evidence": [str],   # signals to evidence_check edge
+          "missing_evidence": [str],
         }
     """
     passed: list[dict] = []
@@ -420,35 +461,48 @@ def evaluate_predicates(
             }
         )
 
-    # Evidence-required predicates
+    # Evidence-required predicates: scan PR file lists against the rule's
+    # patterns. Patterns are dynamic — generated by criteria_parser_node
+    # based on the user's hiring text and the target repo's conventions.
     for req in predicates.get("evidence_required", []):
-        if req == "framework_design_pr":
-            if activity["framework_design_prs"]:
-                passed.append(
-                    {
-                        "predicate": "has_framework_design_pr",
-                        "evidence": [
-                            p["url"] for p in activity["framework_design_prs"][:3]
-                        ],
-                    }
-                )
-            else:
-                failed.append(
-                    {
-                        "predicate": "has_framework_design_pr",
-                        "reason": "no framework-design PR found in current window",
-                    }
-                )
-                missing_evidence.append("framework_design_pr")
+        rule = _resolve_evidence_rule(req)
+        name = rule["name"]
+        patterns = rule["file_path_patterns"]
+        min_count = rule["min_count"]
+        pred_label = f"has_{name} (>={min_count})"
+
+        if not patterns:
+            failed.append({
+                "predicate": pred_label,
+                "reason": f"evidence rule '{name}' has no file_path_patterns",
+            })
+            missing_evidence.append(name)
+            continue
+
+        # Scan stored PR details. Backward-compat: if older cached data
+        # only has framework_design_prs, fall back to it for that name.
+        matched = []
+        for pr in activity.get("pr_details", []):
+            files = [{"filename": fn} for fn in pr.get("files", [])]
+            if _files_match_patterns(files, patterns):
+                matched.append({"url": pr.get("url"), "title": pr.get("title")})
+        if not matched and "framework_design_prs" in activity and name == "framework_design_pr":
+            matched = activity["framework_design_prs"]
+
+        if len(matched) >= min_count:
+            passed.append({
+                "predicate": pred_label,
+                "evidence": [m["url"] for m in matched[:3]],
+            })
         else:
-            # Unknown evidence type — flag as missing for re-fetch
-            failed.append(
-                {
-                    "predicate": req,
-                    "reason": f"evidence type '{req}' not yet implemented",
-                }
-            )
-            missing_evidence.append(req)
+            failed.append({
+                "predicate": pred_label,
+                "reason": (
+                    f"only {len(matched)} matching PR(s) found in current window "
+                    f"(patterns: {', '.join(patterns[:4])}{'...' if len(patterns) > 4 else ''})"
+                ),
+            })
+            missing_evidence.append(name)
 
     all_passed = not failed
 

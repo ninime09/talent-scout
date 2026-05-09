@@ -78,7 +78,7 @@ def main() -> int:
                 f"  [{i:2}/{len(labels)}] {username:20} "
                 f"merged_prs={activity['merged_prs']:3} "
                 f"reviews={activity['review_count']:3} "
-                f"frame_design={len(activity['framework_design_prs']):2} "
+                f"prs_with_files={len(activity.get('pr_details', [])):2} "
                 f"(cached)"
             )
             activities.append({"label": row["score"], "activity": activity})
@@ -93,7 +93,7 @@ def main() -> int:
                 f"merged_prs={activity['merged_prs']:3} "
                 f"reviews={activity['review_count']:3} "
                 f"acceptance={activity['review_acceptance']:.2f} "
-                f"frame_design={len(activity['framework_design_prs']):2} "
+                f"prs_with_files={len(activity.get('pr_details', [])):2} "
                 f"({time.time()-t0:.1f}s)"
             )
             activities.append({"label": row["score"], "activity": activity})

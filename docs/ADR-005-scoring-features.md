@@ -80,3 +80,35 @@ quality. Both framings are defensible — they answer different questions.
   staff hires).
 - The 365-day activity window matches the labeling window, but
   systematically under-rates "less active but foundational" contributors.
+
+### Evidence rule design — dynamic patterns, not hardcoded paths
+
+The `evidence_required` field is generated dynamically by
+`criteria_parser_node`, not hardcoded. Each rule is a structured object:
+
+```json
+{
+  "name": "framework_architecture_pr",
+  "description": "PRs that modify core framework code or internal APIs",
+  "file_path_patterns": ["/core/", "/lib/", "/internal/", "src/framework"],
+  "min_count": 1
+}
+```
+
+The parser chooses patterns based on the user's hiring criteria (e.g.,
+"frontend engineer" generates patterns like `src/components/`, `.tsx`;
+"infra engineer" generates `/.github/workflows/`, `Dockerfile`).
+`tools.evaluate_predicates` scans each candidate's PR file lists against
+these patterns at verification time and returns matched PR URLs as
+evidence.
+
+**Why dynamic.** An earlier draft hardcoded axum-specific paths (e.g.,
+`src/extract`, `src/routing`) inside `tools.py`. That worked for axum
+but was a design smell — the agent should generalize across repos.
+Cross-repo verification on `langchain-ai/langgraph` confirmed the
+parser produces sensible Python-stack patterns (`async`, `asyncio`,
+`/state/`, `/agents/`) without code changes.
+
+**Backward compatibility.** Legacy string-form `evidence_required`
+entries (e.g., `["framework_design_pr"]`) still work; they fall back to
+a curated default pattern list in `tools.DEFAULT_EVIDENCE_PATTERNS`.

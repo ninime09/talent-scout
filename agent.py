@@ -185,7 +185,7 @@ def _synthesize_narrative(c: dict) -> dict:
     failed = c.get("failed", []) or []
     n_pass = len(passed)
     n_fail = len(failed)
-    fdesign = c.get("framework_design_prs", []) or []
+    evidence_urls = c.get("evidence_urls", []) or []
     name = c.get("username", "unknown")
     score = c.get("score", 0)
     last = c.get("last_commit", "unknown")
@@ -210,21 +210,21 @@ def _synthesize_narrative(c: dict) -> dict:
         if n_fail
         else ""
     )
-    fdesign_summary = (
-        f" Framework-design contributions: {len(fdesign)} PR(s)."
-        if fdesign
-        else " No framework-design PRs in window."
+    evidence_summary = (
+        f" Verified evidence: {len(evidence_urls)} PR(s)."
+        if evidence_urls
+        else ""
     )
 
     reasoning = (
         f"{verdict} Score {score}, {c.get('merged_prs', 0)} merged PRs, "
         f"{c.get('reviews', 0)} reviews; last commit {last}. "
-        f"{pass_summary}{fail_summary}{fdesign_summary}"
+        f"{pass_summary}{fail_summary}{evidence_summary}"
     )
     return {
         "username": name,
         "reasoning": reasoning,
-        "evidence_links": [p["url"] for p in fdesign[:3]],
+        "evidence_links": evidence_urls[:3],
     }
 
 
@@ -437,6 +437,16 @@ def report_node(state: AgentState) -> dict:
         zip(scores, reports, activities), key=lambda t: t[0]["score"], reverse=True
     )[: state.get("top_n", 5)]
 
+    def _evidence_urls(predicate_report: dict) -> list[str]:
+        """Collect verified PR URLs from all passed evidence predicates."""
+        urls: list[str] = []
+        for p in predicate_report.get("passed", []):
+            for ev in p.get("evidence", []) or []:
+                if isinstance(ev, str) and ev.startswith("http"):
+                    urls.append(ev)
+        # Dedupe preserving order
+        return list(dict.fromkeys(urls))
+
     candidates_payload = [
         {
             "rank": i + 1,
@@ -447,7 +457,7 @@ def report_node(state: AgentState) -> dict:
             "failed": r["failed"],
             "merged_prs": a["merged_prs"],
             "reviews": a["review_count"],
-            "framework_design_prs": a["framework_design_prs"],
+            "evidence_urls": _evidence_urls(r),
             "last_commit": a["last_commit_iso"],
         }
         for i, (s, r, a) in enumerate(indexed)
@@ -458,8 +468,8 @@ def report_node(state: AgentState) -> dict:
         "You are writing concise hiring reports. For each candidate, write "
         "one paragraph (3-4 sentences) that cites the rule-based evidence. "
         "DO NOT invent facts. Reference the predicate pass/fail outcomes "
-        "and link specific PR URLs from the framework_design_prs list. Output "
-        "JSON only with shape: "
+        "and link specific PR URLs from the candidate's evidence_urls list. "
+        "Output JSON only with shape: "
         '[{"username": str, "reasoning": str, "evidence_links": [str]}]'
     )
     raw = llm.invoke(

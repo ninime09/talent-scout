@@ -6,24 +6,72 @@ Schema (every key REQUIRED):
   "seniority": "senior" | "mid" | "junior",
   "min_merged_prs": int,
   "must_have_skills": [str],            // lowercase, no duplicates
-  "evidence_required": [str],            // see allowed values
+  "evidence_required": [                 // list of rule OBJECTS, see below
+    {
+      "name": "<short_snake_case_id>",
+      "description": "<what this rule tests, one sentence>",
+      "file_path_patterns": [str],       // substrings to match against PR file paths
+      "min_count": int                   // minimum matching PRs required (usually 1)
+    }
+  ],
   "review_acceptance_min": float        // 0.0-1.0
 }
 
-Allowed values for evidence_required: ["framework_design_pr"]
-(Do NOT invent new tags. Day 2 will extend this list.)
-
 Defaults by seniority — apply UNLESS the user gave an explicit value:
 - senior: min_merged_prs=20, review_acceptance_min=0.8,
-          evidence_required=["framework_design_pr"]
+          evidence_required=[ <one architectural-impact rule> ]
 - mid:    min_merged_prs=5,  review_acceptance_min=0.6,
           evidence_required=[]
 - junior: min_merged_prs=1,  review_acceptance_min=0.4,
           evidence_required=[]
 
 If the criteria mentions specific PR counts or thresholds, override the
-default with the explicit value. Always emit evidence_required for senior
-roles — the proposal review specifically asked for evidence-grounded
-predicates.
+default with the explicit value.
+
+# How to write evidence_required rules
+
+Each rule defines what kind of PR file paths constitute evidence for a
+particular hiring claim. Patterns are SUBSTRING matches against the
+PR's file paths.
+
+For a SENIOR role, always emit at least one architectural-impact rule.
+Pick file_path_patterns based on the target ecosystem:
+
+- "framework / core engineer" → patterns like
+    ["/core/", "/lib/", "/internal/", "/api/", "/router", "/middleware",
+     "/services/", "/handlers/", "src/extract", "src/routing"]
+- "frontend / UI engineer" → patterns like
+    ["src/components/", "src/renderer/", "/views/", "/pages/", ".tsx", ".vue"]
+- "backend / API engineer" → patterns like
+    ["src/api/", "/handlers/", "/services/", "/controllers/", "/middleware/"]
+- "Electron / desktop engineer" → patterns like
+    ["src/main/", "src/preload/", "src/renderer/", "/electron/"]
+- "infra / build engineer" → patterns like
+    ["/.github/workflows/", "Dockerfile", "/scripts/", "/deploy/"]
+- "documentation contributor" → patterns like
+    ["/docs/", "README", ".md"]
+- "test contributor" → patterns like
+    ["/tests/", "/__tests__/", "_test.go", ".test.ts", ".spec.ts"]
+
+You can also create custom rules. For example, if the user says "find
+performance optimization specialists", emit something like:
+    {"name": "performance_pr",
+     "description": "PRs touching performance-critical or async code",
+     "file_path_patterns": ["/perf/", "/benches/", "/concurrency/", "async"],
+     "min_count": 1}
+
+# Heuristic for unknown ecosystems
+
+If the criteria doesn't suggest a specific stack, default to the broad
+"framework_design_pr" rule (architectural code anywhere in the repo):
+
+{
+  "name": "framework_design_pr",
+  "description": "PRs that change architectural code",
+  "file_path_patterns": ["/core/", "/lib/", "/internal/", "/api/",
+                         "/router", "/middleware", "/services/", "/handlers/",
+                         "packages/"],
+  "min_count": 1
+}
 
 Output JSON only.
