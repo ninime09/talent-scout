@@ -1,0 +1,11 @@
+consistency_id,ok_reps,judge_mean,judge_std,top1_stable,jaccard_mean,spearman_mean,note
+S01_standard_senior_v01,3,3.83,0.118,True,1.0,1.0,
+S01_standard_senior_v06,3,4.17,0.118,True,1.0,1.0,
+S02_clarify_trigger_v01,3,4.5,0.0,True,1.0,1.0,
+S02_clarify_trigger_v06,3,4.25,0.354,True,1.0,1.0,
+S03_high_activity_low_quality_v01,3,4.08,0.118,True,1.0,1.0,
+S03_high_activity_low_quality_v06,3,4.42,0.118,True,1.0,1.0,
+S04_adversarial_spam_v01,3,4.08,0.312,True,1.0,1.0,
+S04_adversarial_spam_v06,3,4.08,0.236,True,1.0,1.0,
+S05_repo_404_v01,0,0.0,0.0,False,,,insufficient successful reps for variance
+S05_repo_404_v06,0,0.0,0.0,False,,,insufficient successful reps for variance

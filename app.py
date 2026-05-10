@@ -482,6 +482,52 @@ with tab_eval:
         f"which fails by design)."
     )
 
+    # ---- Consistency (10 cases × 3 reps) -----------------------------
+    consistency_path = DATA / "consistency_summary.csv"
+    if consistency_path.exists():
+        st.markdown("### Consistency Score (10 core cases × 3 repetitions)")
+        st.markdown(
+            "Each core test case was run 3 times. We measure **ranking stability** "
+            "(do we get the same candidates in the same order?) and **judge "
+            "variance** (does the LLM judge score the explanations consistently?)."
+        )
+
+        df_cons = _load_csv("consistency_summary.csv")
+        valid = df_cons[df_cons["jaccard_mean"].notna()]
+
+        cc1, cc2, cc3, cc4 = st.columns(4)
+        with cc1:
+            st.metric(
+                "Top-N set overlap",
+                f"{valid['jaccard_mean'].mean():.3f}",
+                help="Jaccard similarity of candidate sets across reps · 1.0 = identical",
+            )
+        with cc2:
+            st.metric(
+                "Top-1 stability",
+                f"{valid['top1_stable'].mean()*100:.0f}%",
+                help="% of cases where the rank-1 candidate stayed the same",
+            )
+        with cc3:
+            st.metric(
+                "Ranking Spearman ρ",
+                f"{valid['spearman_mean'].dropna().mean():.3f}",
+                help="Correlation of orderings across reps · 1.0 = identical order",
+            )
+        with cc4:
+            st.metric(
+                "Judge score std",
+                f"{valid['judge_std'].mean():.3f}",
+                help="Mean across cases · 0.0 = identical judge across reps",
+            )
+
+        st.dataframe(df_cons, use_container_width=True, hide_index=True)
+        st.caption(
+            "Rankings are highly stable because composite scoring is rule-based "
+            "(deterministic). The non-zero judge std reflects natural variation in "
+            "LLM-written narratives — small but real, not all zeros."
+        )
+
     st.subheader("All test results")
     st.dataframe(df_eval, use_container_width=True, hide_index=True)
     st.caption(
