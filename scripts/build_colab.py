@@ -54,8 +54,8 @@ cells.append(md(
     "",
     "| Section | Purpose |",
     "|---|---|",
-    "| 1 · Architecture | The compiled LangGraph topology (mermaid SVG) |",
-    "| 2 · Setup | Clone the repo and configure API keys |",
+    "| 1 · Setup | Clone the repo and configure API keys |",
+    "| 2 · Architecture | The compiled LangGraph topology (mermaid SVG) |",
     "| 3 · Live demo (axum) | End-to-end agent run with HITL clarification |",
     "| 4 · Cross-repo demo (langgraph) | Same agent on a different ecosystem — proves generalization |",
     "| 5 · Pre-computed evaluation | 50-test eval matrix, ablation, consistency, FinOps |",
@@ -66,33 +66,16 @@ cells.append(md(
     f"- GitHub repo: {GITHUB_HTTPS.replace('.git','')}",
     f"- Live Streamlit platform: {STREAMLIT_URL}",
     f"- LangSmith trace project: `{LANGSMITH_PROJECT}` on https://smith.langchain.com",
-))
-
-# ----------------------------------------------------------------------
-# 2. Architecture
-# ----------------------------------------------------------------------
-cells.append(md(
-    "## 1. Architecture",
     "",
-    "Seven nodes, one conditional edge, one human-in-the-loop interrupt.",
-    "Color encoding: **blue** = LLM-driven, **green** = rule-based,",
-    "**yellow** = HITL, **pink** = decision branch, **purple** = I/O.",
-))
-cells.append(code(
-    "from IPython.display import SVG, display",
-    "import os",
-    "svg_path = 'talent-scout/docs/architecture.svg'",
-    "if os.path.exists(svg_path):",
-    "    display(SVG(filename=svg_path))",
-    "else:",
-    "    print('Architecture SVG not found yet — run the Setup cells first.')",
+    "**Run order**: execute cells top-to-bottom. Section 1 must complete",
+    "before section 2 (the Architecture cell needs the cloned repo).",
 ))
 
 # ----------------------------------------------------------------------
-# 3. Setup
+# 1. Setup (must come BEFORE the architecture cell that reads the SVG)
 # ----------------------------------------------------------------------
 cells.append(md(
-    "## 2. Setup",
+    "## 1. Setup",
     "",
     "**Clone the repo**, install dependencies, and configure API keys.",
     "",
@@ -147,6 +130,27 @@ cells.append(code(
     "print()",
     "print(f'HAS_KEYS = {HAS_KEYS} — live cells will run' if HAS_KEYS",
     "      else 'HAS_KEYS = False — live cells will be skipped (pre-computed results still work)')",
+))
+
+# ----------------------------------------------------------------------
+# Architecture (after setup, so cwd = talent-scout and SVG path resolves)
+# ----------------------------------------------------------------------
+cells.append(md(
+    "## 2. Architecture",
+    "",
+    "Seven nodes, one conditional edge, one human-in-the-loop interrupt.",
+    "Color encoding: **blue** = LLM-driven, **green** = rule-based,",
+    "**yellow** = HITL, **pink** = decision branch, **purple** = I/O.",
+))
+cells.append(code(
+    "from IPython.display import SVG, display",
+    "import os",
+    "# After Setup, cwd is the talent-scout repo root.",
+    "svg_path = 'docs/architecture.svg'",
+    "if os.path.exists(svg_path):",
+    "    display(SVG(filename=svg_path))",
+    "else:",
+    "    print('Architecture SVG not found. Make sure section 1 (Setup) ran first.')",
 ))
 
 # ----------------------------------------------------------------------
